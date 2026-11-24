@@ -35,7 +35,7 @@ function formatKickReason(reason) {
     if (typeof reason === 'string') return reason;
 
     if (typeof reason === 'object') {
-        let parts = [];
+        const parts = [];
         if (typeof reason.text === 'string') parts.push(reason.text);
         if (typeof reason.translate === 'string') parts.push(reason.translate);
         if (Array.isArray(reason.extra)) {
@@ -281,4 +281,36 @@ io.on('connection', (socket) => {
         }
 
         clearAutoMsg(false);
-        panel
+        panelState.autoMsg = {
+            active: true,
+            message,
+            interval: intervalSec
+        };
+        broadcastState();
+
+        const sendTick = () => {
+            if (mcBot && panelState.connected && mcBot.chat) {
+                mcBot.chat(panelState.autoMsg.message);
+                pushLog({
+                    type: 'auto',
+                    botName: panelState.profile.username,
+                    text: panelState.autoMsg.message
+                });
+            } else {
+                clearAutoMsg(false);
+            }
+        };
+
+        sendTick();
+        autoMsgInterval = setInterval(sendTick, intervalSec * 1000);
+    });
+
+    socket.on('stop_auto_msg', () => {
+        clearAutoMsg(true);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Web sunucusu ${PORT} portunda çalışıyor.`);
+});
