@@ -30,36 +30,59 @@ let mcBot = null;
 let autoMsgInterval = null;
 let antiAfkInterval = null;
 
+function extractNbtValue(node) {
+    if (node === null || node === undefined) return '';
+    if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
+        return String(node);
+    }
+    if (Array.isArray(node)) {
+        return node.map(extractNbtValue).join('');
+    }
+    if (typeof node === 'object') {
+        if (node.type && Object.prototype.hasOwnProperty.call(node, 'value')) {
+            return extractNbtValue(node.value);
+        }
+
+        let out = '';
+        if (node.text !== undefined) out += extractNbtValue(node.text);
+        if (node.extra !== undefined) out += extractNbtValue(node.extra);
+        if (node.with !== undefined) out += extractNbtValue(node.with);
+
+        if (!out) {
+            for (const key of Object.keys(node)) {
+                if (
+                    key === 'color' ||
+                    key === 'bold' ||
+                    key === 'italic' ||
+                    key === 'underlined' ||
+                    key === 'strikethrough' ||
+                    key === 'obfuscated'
+                ) {
+                    continue;
+                }
+                out += extractNbtValue(node[key]);
+            }
+        }
+        return out;
+    }
+    return '';
+}
+
 function formatKickReason(reason) {
     if (!reason) return 'Sebep belirtilmedi.';
     if (typeof reason === 'string') return reason;
 
-    if (typeof reason === 'object') {
-        const parts = [];
-        if (typeof reason.text === 'string') parts.push(reason.text);
-        if (typeof reason.translate === 'string') parts.push(reason.translate);
-        if (Array.isArray(reason.extra)) {
-            const extraText = reason.extra
-                .map((item) => (typeof item === 'string' ? item : formatKickReason(item)))
-                .join('');
-            if (extraText) parts.push(extraText);
-        }
-        if (Array.isArray(reason.with)) {
-            const withText = reason.with
-                .map((item) => (typeof item === 'string' ? item : formatKickReason(item)))
-                .join(' ');
-            if (withText) parts.push(withText);
-        }
-        const combined = parts.join(' ').trim();
-        if (combined) return combined;
-        try {
-            return JSON.stringify(reason);
-        } catch (_) {
-            return 'Bilinmeyen atılma sebebi.';
-        }
-    }
+    const extracted = extractNbtValue(reason)
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
 
-    return String(reason);
+    if (extracted) return extracted;
+
+    try {
+        return JSON.stringify(reason);
+    } catch (_) {
+        return 'Bilinmeyen atılma sebebi.';
+    }
 }
 
 function pushLog(entry) {
