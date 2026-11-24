@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semoizm - MC Bot Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        body { 
+            background: linear-gradient(135deg, #09090e 0%, #171721 100%); 
+            color: #e0e0e0;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main-app {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            max-height: 900px;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .header-title {
+            margin: 0;
+            font-size: 23px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00C9FF 0%, #92FE9D 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(25, 25, 35, 0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #92FE9D;
+            font-weight: 600;
+        }
+
+        .profile-chip {
+            background: rgba(0, 201, 255, 0.1);
+            border: 1px solid rgba(0, 201, 255, 0.25);
+            color: #00C9FF;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pill {
+            background: rgba(25, 25, 35, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef473a;
+        }
+        .status-pill.online .dot { background: #38ef7d; box-shadow: 0 0 8px #38ef7d; }
+        .status-pill.connecting .dot { background: #f5af19; box-shadow: 0 0 8px #f5af19; }
+
+        .panel {
+            background: rgba(25, 25, 35, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .input-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .input-group input {
+            flex: 1;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #fff;
+            outline: none;
+            min-width: 110px;
+            font-size: 13px;
+        }
+        .input-group input:focus { border-color: rgba(0, 201, 255, 0.5); }
+
+        .btn {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .btn:hover { transform: translateY(-1px); opacity: 0.95; }
+        .btn-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .btn-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
+        .btn-purple { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); }
+        .btn-orange { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); }
+        .btn-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        
+        #chat-box {
+            flex: 1;
+            min-height: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow-y: auto;
+            padding: 14px;
+            font-size: 13.5px;
+            margin-bottom: 12px;
+        }
+        .message { margin-bottom: 7px; word-break: break-word; }
+        .username { color: #f39c12; font-weight: 600; }
+        .sys-message { color: #00bcd4; font-style: italic; opacity: 0.85; }
+        .auto-badge {
+            background: #8E2DE2;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-right: 6px;
+            font-weight: 600;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            padding-top: 2px;
+        }
+        .footer a { color: #e0e0e0; text-decoration: none; font-weight: 700; transition: 0.3s; }
+        .footer a:hover { color: #00C9FF; text-shadow: 0 0 10px rgba(0, 201, 255, 0.6); }
+
+        @media (max-width: 600px) {
+            .header-container { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-app">
+        <div class="header-container">
+            <h2 class="header-title">Minecraft AFK Bot Paneli</h2>
+            <div class="status-bar">
+                <span class="badge">Açık Kaynak • Semoizm</span>
+                <span class="profile-chip" id="active-profile-chip">Profil: Semoizm • Sunucu Yok</span>
+                <div class="status-pill" id="status-pill">
+                    <span class="dot"></span>
+                    <span id="status-text">Çevrimdışı</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel input-group">
+            <input type="text" id="ip-input" placeholder="Sunucu IP">
+            <input type="text" id="port-input" placeholder="Port" value="25565" style="flex: 0.3;">
+            <input type="text" id="user-input" placeholder="Bot Adı" value="Semoizm" style="flex: 0.5;">
+            <input type="text" id="version-input" placeholder="Sürüm (Boş = Oto)" style="flex: 0.4;">
+            <button class="btn btn-green" onclick="connectBot()">Bağlan</button>
+            <button class="btn btn-red" onclick="disconnectBot()">Çıkış</button>
+        </div>
+
+        <div class="panel input-group">
+            <input type="text" id="auto-msg-text" placeholder="Otomatik gönderilecek mesaj...">
+            <input type="number" id="auto-msg-interval" placeholder="Süre (sn)" value="10" min="1" style="flex: 0.3;">
+            <button class="btn btn-purple" onclick="startAutoMsg()">Oto Başlat</button>
+            <button class="btn btn-orange" onclick="stopAutoMsg()">Oto Durdur</button>
+        </div>
+
+        <div id="chat-box" class="panel"></div>
+        
+        <div class="input-group" style="margin-bottom: 10px;">
+            <input type="text" id="msg-input" placeholder="Sohbete yazın..." autocomplete="off">
+            <button class="btn btn-blue" onclick="sendMessage()">Gönder</button>
+        </div>
+
+        <div class="footer">
+            by <a href="https://bit.ly/darkkod" target="_blank">Dark Studio</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const chatBox = document.getElementById('chat-box');
+        const msgInput = document.getElementById('msg-input');
+
+        const ipInput = document.getElementById('ip-input');
+        const portInput = document.getElementById('port-input');
+        const userInput = document.getElementById('user-input');
+        const versionInput = document.getElementById('version-input');
+        const autoMsgText = document.getElementById('auto-msg-text');
+        const autoMsgInterval = document.getElementById('auto-msg-interval');
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function renderLogEntry(entry) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+
+            if (entry.type === 'sys') {
+                msgDiv.innerHTML = `<span class="sys-message">[Sistem] ${escapeHtml(entry.text)}</span>`;
+            } else if (entry.type === 'auto') {
+                msgDiv.innerHTML = `<span class="auto-badge">OTO</span><span class="username" style="color:#8E2DE2;">Sen (${escapeHtml(entry.botName || 'Semoizm')}):</span> <span style="color:#fff;">${escapeHtml(entry.text)}</span>`;
+            } else if (entry.type === 'self') {
+                msgDiv.innerHTML = `<span class="username" style="color:#00f2fe;">Sen (${escapeHtml(entry.botName || 'Semoizm')}):</span> <span style="color:#fff;">${escapeHtml(entry.text)}</span>`;
+            } else {
+                const safeMsg = escapeHtml(entry.text || '');
+                const chatMatch = safeMsg.match(/^&lt;(.*?)&gt;\s(.*)/);
+                if (chatMatch) {
+                    msgDiv.innerHTML = `<span class="username">${chatMatch[1]}:</span> <span style="color:#fff;">${chatMatch[2]}</span>`;
+                } else {
+                    msgDiv.innerHTML = `<span style="color:#b0bec5;">${safeMsg}</span>`;
+                }
+            }
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function applyState(state, forceInputs = false) {
+            const pill = document.getElementById('status-pill');
+            const statusText = document.getElementById('status-text');
+            const chip = document.getElementById('active-profile-chip');
+
+            pill.classList.remove('online', 'connecting');
+            if (state.connected) {
+                pill.classList.add('online');
+                statusText.innerText = 'Bağlı (7/24 Aktif)';
+            } else if (state.connecting) {
+                pill.classList.add('connecting');
+                statusText.innerText = 'Bağlanıyor...';
+            } else {
+                statusText.innerText = 'Çevrimdışı';
+            }
+
+            const p = state.profile || {};
+            const activeName = p.username && p.username !== 'DarkBot' ? p.username : 'Semoizm';
+            const serverLabel = p.host ? `${p.host}:${p.port || 25565}` : 'Sunucu Yok';
+            chip.innerText = `Profil: ${activeName} • ${serverLabel}`;
+
+            const activeEl = document.activeElement;
+            if (forceInputs || activeEl !== ipInput) ipInput.value = p.host || '';
+            if (forceInputs || activeEl !== portInput) portInput.value = p.port || 25565;
+            if (forceInputs || activeEl !== userInput) userInput.value = activeName;
+            if (forceInputs || activeEl !== versionInput) versionInput.value = p.version || '';
+
+            if (state.autoMsg) {
+                if (forceInputs || activeEl !== autoMsgText) {
+                    autoMsgText.value = state.autoMsg.message || '';
+                }
+                if (forceInputs || activeEl !== autoMsgInterval) {
+                    autoMsgInterval.value = state.autoMsg.interval || 10;
+                }
+            }
+        }
+
+        socket.on('init_state', (state) => {
+            chatBox.innerHTML = '';
+            applyState(state, true);
+            if (Array.isArray(state.logs)) {
+                state.logs.forEach(renderLogEntry);
+            }
+        });
+
+        socket.on('state_update', (state) => {
+            applyState(state, false);
+        });
+
+        socket.on('log_entry', (entry) => {
+            renderLogEntry(entry);
+        });
+
+        function connectBot() {
+            const host = ipInput.value.trim();
+            const port = portInput.value.trim();
+            const username = userInput.value.trim() || 'Semoizm';
+            const version = versionInput.value.trim();
+            if (!host) return alert('Sunucu IP adresi girin.');
+
+            socket.emit('connect_bot', { host, port, username, version });
+        }
+
+        function disconnectBot() {
+            socket.emit('disconnect_bot');
+        }
+
+        function startAutoMsg() {
+            const message = autoMsgText.value.trim();
+            const interval = parseInt(autoMsgInterval.value.trim(), 10);
+            if (!message || isNaN(interval) || interval < 1) {
+                return alert('Geçerli bir mesaj ve süre girin.');
+            }
+            socket.emit('start_auto_msg', { message, interval });
+        }
+
+        function stopAutoMsg() {
+            socket.emit('stop_auto_msg');
+        }
+
+        function sendMessage() {
+            const text = msgInput.value.trim();
+            if (text) {
+                socket.emit('web_message', text);
+                msgInput.value = '';
+            }
+        }
+
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
